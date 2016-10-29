@@ -1,6 +1,6 @@
 package me.ranol.serverisalive;
 
-import me.ranol.serverisalive.checker.AbstractQuery;
+import me.ranol.serverisalive.checker.Query;
 import me.ranol.serverisalive.checker.CheckResults;
 import me.ranol.serverisalive.checker.ProtocolQuery;
 import me.ranol.serverisalive.checker.SocketQuery;
@@ -12,11 +12,11 @@ public class SIA {
 	}
 
 	static void socket(String ip, int port) {
-		AbstractQuery query = new SocketQuery(ip, port);
+		Query query = new SocketQuery(ip, port);
 		def(query);
 	}
 
-	static void def(AbstractQuery query) {
+	static void def(Query query) {
 		System.out.println(query.getIPAddress() + ":" + query.getPort()
 				+ " 에 연결 요청을 보냅니다. / " + query.getClass().getSimpleName());
 		CheckResults result = query.connect();
@@ -29,7 +29,7 @@ public class SIA {
 	}
 
 	static void protocol(String ip, int port) {
-		AbstractQuery query = new ProtocolQuery(ip, port);
+		Query query = new ProtocolQuery(ip, port);
 		def(query);
 		System.out.println("게임 ID: " + query.get(ProtocolQuery.GAME_ID));
 		System.out.println("게임 타입: " + query.get(ProtocolQuery.GAME_TYPE));

@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 import me.ranol.serverisalive.Options;
 
-public class SocketQuery extends AbstractQuery {
+public class SocketQuery extends Query {
 
 	public SocketQuery(String ip, int port) {
 		super(ip, port);

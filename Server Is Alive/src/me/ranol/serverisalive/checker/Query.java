@@ -7,7 +7,7 @@ import java.util.Set;
 
 import me.ranol.serverisalive.utils.ValueMap;
 
-public abstract class AbstractQuery {
+public abstract class Query {
 	public static final String IP = "ip";
 	public static final String PORT = "port";
 	public static final String MOTD = "motd";
@@ -15,7 +15,7 @@ public abstract class AbstractQuery {
 	public static final String PLAYERS = "players";
 	private ValueMap values = ValueMap.empty();
 
-	public AbstractQuery(String ip, int port) {
+	public Query(String ip, int port) {
 		set(IP, ip);
 		set(PORT, port);
 		set("check-start", System.currentTimeMillis());

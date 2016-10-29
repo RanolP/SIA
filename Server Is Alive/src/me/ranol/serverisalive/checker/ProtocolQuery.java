@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 import me.ranol.serverisalive.Options;
 import me.ranol.serverisalive.utils.ByteUtils;
 
-public class ProtocolQuery extends AbstractQuery {
+public class ProtocolQuery extends Query {
 	public static final String VERSION = "mcversion";
 	public static final String GAME_TYPE = "gametype";
 	public static final String GAME_ID = "gameid";
