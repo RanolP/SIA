@@ -1,7 +1,7 @@
 # SIA
 SIA - Server Is Alive? The Minecraft's Server Status Checker.
 # Connect Type
-Socket Type Connecting
+Socket Type Connecting<br>
 Minecraft Protocol Type Connecting [_Minecraft's List Ping Packet_]
 # How to use?
 Create Query Class with ip & port.
