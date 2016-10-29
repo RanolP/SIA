@@ -39,5 +39,6 @@ public class SIA {
 		System.out.println("맵 이름: " + query.get(ProtocolQuery.MAP_NAME));
 		System.out.println("사용 버킷: " + query.get(ProtocolQuery.BUKKIT_NAME));
 		System.out.println("플러그인들: " + query.get(ProtocolQuery.PLUGINS));
+		System.out.println("유저들: " + query.get(ProtocolQuery.CURRENT_PLAYERS));
 	}
 }

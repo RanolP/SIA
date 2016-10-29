@@ -28,6 +28,7 @@ public class ProtocolQuery extends Query {
 	public static final String MAP_NAME = "map";
 	public static final String PLUGINS = "plugins";
 	public static final String BUKKIT_NAME = "bukkit";
+	public static final String CURRENT_PLAYERS = "currplayer";
 
 	public ProtocolQuery(String ip, int port) {
 		super(ip, port);
@@ -52,6 +53,7 @@ public class ProtocolQuery extends Query {
 					challenge >> 24, challenge >> 16, challenge >> 8,
 					challenge, 0x00, 0x00, 0x00, 0x00);
 			recievePacket(udp, recieve);
+			System.out.println(Arrays.toString(recieve));
 			recieve = ByteUtils.removeFirst(recieve, 5);
 			String key = null;
 			int last = 0;
@@ -71,6 +73,22 @@ public class ProtocolQuery extends Query {
 					continue;
 				}
 			}
+			last = 0;
+			List<String> users = new ArrayList<>();
+			while ((index = ByteUtils.indexOf(recieve,
+					new byte[] { 0x00, 0x00 }, index + 1)) != -1) {
+				if (last == 0) {
+					last = index;
+					continue;
+				}
+				byte[] temp = ByteUtils.cut(recieve, last + 1, index);
+				if (temp.length == 0)
+					break;
+				temp = ByteUtils.cut(temp, 1, temp.length);
+				last = index;
+				users.add(new String(temp));
+
+			}
 			set(MOTD, values.get("hostname"));
 			set(GAME_TYPE, values.get("gametype"));
 			set(GAME_ID, values.get("game_id"));
@@ -85,6 +103,7 @@ public class ProtocolQuery extends Query {
 					"plugins").split(":")[1].split(";"))).stream()
 					.map(s -> s.trim()).collect(Collectors.toList());
 			set(PLUGINS, plugins);
+			set(CURRENT_PLAYERS, users);
 			setConnected(true);
 			return CheckResults.CONNECTED;
 
