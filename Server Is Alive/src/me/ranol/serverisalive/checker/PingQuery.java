@@ -17,6 +17,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 
 import me.ranol.serverisalive.Options;
+import me.ranol.serverisalive.utils.MotdParser;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -110,10 +111,10 @@ public class PingQuery extends Query {
 			StringBuilder description = new StringBuilder("");
 			if (desc.isJsonObject()) {
 				JsonObject obj = desc.getAsJsonObject();
-				parse(description, obj.get("text"));
-				parse(description, obj.get("extra"));
+				MotdParser.parse(description, obj.get("text"));
+				MotdParser.parse(description, obj.get("extra"));
 			} else if (desc.isJsonPrimitive()) {
-				parse(description, desc);
+				MotdParser.parse(description, desc);
 			}
 			set(MOTD, description.toString());
 			return CheckResults.CONNECTED;
@@ -134,93 +135,6 @@ public class PingQuery extends Query {
 			close(reader);
 		}
 		return CheckResults.OTHER;
-	}
-
-	void parse(StringBuilder b, JsonElement e) {
-		if (e == null || e.isJsonNull())
-			return;
-		if (e.isJsonArray()) {
-			e.getAsJsonArray().forEach(e2 -> parse(b, e2));
-		}
-		if (e.isJsonObject()) {
-			e.getAsJsonObject()
-					.entrySet()
-					.forEach(
-							entry -> {
-								if (entry.getKey().equals("text")
-										|| entry.getKey().equals("extra"))
-									parse(b, entry.getValue());
-								else if (entry.getKey().equals("color")) {
-									parseColor(b, entry.getValue()
-											.getAsString());
-								} else if (entry.getKey().equals("bold")) {
-									b.append("§l");
-								} else if (entry.getKey().equals("italic")) {
-									b.append("§o");
-								} else if (entry.getKey().equals("bold")) {
-									b.append("§l");
-								}
-							});
-		}
-		if (e.isJsonPrimitive()) {
-			System.out.println(e);
-			b.append(e.getAsString());
-		}
-	}
-
-	void parseColor(StringBuilder b, String c) {
-		switch (c.toLowerCase()) {
-		case "black":
-			b.append("§0");
-			break;
-		case "dark_blue":
-			b.append("§1");
-			break;
-		case "dark_green":
-			b.append("§2");
-			break;
-		case "dark_aqua":
-			b.append("§3");
-			break;
-		case "dark_red":
-			b.append("§4");
-			break;
-		case "dark_purple":
-			b.append("§5");
-			break;
-		case "gold":
-			b.append("§6");
-			break;
-		case "gray":
-			b.append("§7");
-			break;
-		case "dark_gray":
-			b.append("§8");
-			break;
-		case "blue":
-			b.append("§9");
-			break;
-		case "green":
-			b.append("§a");
-			break;
-		case "aqua":
-			b.append("§b");
-			break;
-		case "red":
-			b.append("§c");
-			break;
-		case "light_purple":
-			b.append("§d");
-			break;
-		case "yellow":
-			b.append("§e");
-			break;
-		case "white":
-			b.append("§f");
-			break;
-		default:
-			break;
-		}
 	}
 
 	void close(Closeable closeable) {
