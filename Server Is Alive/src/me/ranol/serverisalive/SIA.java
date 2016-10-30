@@ -12,6 +12,7 @@ public class SIA {
 	public static void main(String[] args) throws Exception {
 		Scanner scn = new Scanner(System.in);
 		Options.set(Options.TIMEOUT, 3000);
+		new SIAFrame();
 		while (true) {
 			System.out.print("아이피 입력[stop으로 종료]: ");
 			String ip = scn.nextLine();

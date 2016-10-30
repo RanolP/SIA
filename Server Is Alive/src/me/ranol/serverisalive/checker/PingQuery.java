@@ -14,7 +14,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
 
 import me.ranol.serverisalive.Options;
 
@@ -71,16 +71,14 @@ public class PingQuery extends Query {
 			handshake.writeByte(0x00);
 			writeVarInt(handshake, 4);
 			writeVarInt(handshake, getIPAddress().length());
-			handshake.writeBytes(getIPAddress());
+			handshake.write(getIPAddress().getBytes(StandardCharsets.UTF_8));
 			handshake.writeShort(getPort());
 			writeVarInt(handshake, 1);
-
-			writeVarInt(handshake, baos.size());
+			writeVarInt(dos, baos.size());
 			dos.write(baos.toByteArray());
 
 			dos.writeByte(0x01);
 			dos.writeByte(0x00);
-			Thread.sleep(3000);
 			dis = new DataInputStream(is);
 
 			int size = readVarInt(dis);
@@ -111,9 +109,6 @@ public class PingQuery extends Query {
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			close(dos);
