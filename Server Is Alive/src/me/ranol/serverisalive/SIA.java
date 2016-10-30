@@ -12,15 +12,15 @@ public class SIA {
 	public static void main(String[] args) throws Exception {
 		Scanner scn = new Scanner(System.in);
 		Options.set(Options.TIMEOUT, 3000);
-		new SIAFrame();
+		new SimpleFrame();
 		while (true) {
-			System.out.print("¾ÆÀÌÇÇ ÀÔ·Â[stopÀ¸·Î Á¾·á]: ");
+			System.out.print("ì•„ì´í”¼ ì…ë ¥[stopìœ¼ë¡œ ì¢…ë£Œ]: ");
 			String ip = scn.nextLine();
 			if (ip.equals("stop"))
 				break;
 			boolean val = true;
 			while (val) {
-				System.out.print("¿¬°á ÄÚµå[s/pr/pi]: ");
+				System.out.print("ì—°ê²° ì½”ë“œ[s/pr/pi]: ");
 				String c = scn.nextLine();
 				if (c.startsWith("s")) {
 					socket(ip, 25565);
@@ -49,27 +49,27 @@ public class SIA {
 
 	static void def(Query query) {
 		System.out.println(query.getIPAddress() + ":" + query.getPort()
-				+ " ¿¡ ¿¬°á ¿äÃ»À» º¸³À´Ï´Ù. / " + query.getClass().getSimpleName());
+				+ " ì— ì—°ê²° ìš”ì²­ì„ ë³´ëƒ…ë‹ˆë‹¤. / " + query.getClass().getSimpleName());
 		CheckResults result = query.connect();
-		System.out.println("Äõ¸® ¿¬°á ¿©ºÎ: " + query.isConnected());
-		System.out.println("Äõ¸® ¿¬°á ½Ã°£: " + query.getCheckingTime());
-		System.out.println("Äõ¸® ¹İÈ¯ °ª: " + result);
+		System.out.println("ì¿¼ë¦¬ ì—°ê²° ì—¬ë¶€: " + query.isConnected());
+		System.out.println("ì¿¼ë¦¬ ì—°ê²° ì‹œê°„: " + query.getCheckingTime());
+		System.out.println("ì¿¼ë¦¬ ë°˜í™˜ ê°’: " + result);
 		System.out.println("Motd: \'" + query.getMotd() + "\'");
-		System.out.println("ÇÃ·¹ÀÌ¾î: " + query.getPlayers() + " / "
+		System.out.println("í”Œë ˆì´ì–´: " + query.getPlayers() + " / "
 				+ query.getMaxPlayers());
 	}
 
 	static void protocol(String ip, int port) {
 		Query query = new ProtocolQuery(ip, port);
 		def(query);
-		System.out.println("°ÔÀÓ ID: " + query.get(ProtocolQuery.GAME_ID));
-		System.out.println("°ÔÀÓ Å¸ÀÔ: " + query.get(ProtocolQuery.GAME_TYPE));
-		System.out.println("¼­¹ö ¾ÆÀÌÇÇ: " + query.get(ProtocolQuery.SERVER_IP));
-		System.out.println("¼­¹ö Æ÷Æ®: " + query.get(ProtocolQuery.SERVER_PORT));
-		System.out.println("¹öÀü: " + query.get(ProtocolQuery.VERSION));
-		System.out.println("¸Ê ÀÌ¸§: " + query.get(ProtocolQuery.MAP_NAME));
-		System.out.println("»ç¿ë ¹öÅ¶: " + query.get(ProtocolQuery.BUKKIT_NAME));
-		System.out.println("ÇÃ·¯±×ÀÎµé: " + query.get(ProtocolQuery.PLUGINS));
-		System.out.println("À¯Àúµé: " + query.get(ProtocolQuery.CURRENT_PLAYERS));
+		System.out.println("ê²Œì„ ID: " + query.get(ProtocolQuery.GAME_ID));
+		System.out.println("ê²Œì„ íƒ€ì…: " + query.get(ProtocolQuery.GAME_TYPE));
+		System.out.println("ì„œë²„ ì•„ì´í”¼: " + query.get(ProtocolQuery.SERVER_IP));
+		System.out.println("ì„œë²„ í¬íŠ¸: " + query.get(ProtocolQuery.SERVER_PORT));
+		System.out.println("ë²„ì „: " + query.get(ProtocolQuery.VERSION));
+		System.out.println("ë§µ ì´ë¦„: " + query.get(ProtocolQuery.MAP_NAME));
+		System.out.println("ì‚¬ìš© ë²„í‚·: " + query.get(ProtocolQuery.BUKKIT_NAME));
+		System.out.println("í”ŒëŸ¬ê·¸ì¸ë“¤: " + query.get(ProtocolQuery.PLUGINS));
+		System.out.println("ìœ ì €ë“¤: " + query.get(ProtocolQuery.CURRENT_PLAYERS));
 	}
 }

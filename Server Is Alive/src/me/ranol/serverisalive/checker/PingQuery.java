@@ -18,6 +18,10 @@ import java.nio.charset.StandardCharsets;
 
 import me.ranol.serverisalive.Options;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 public class PingQuery extends Query {
 	public static final String SERVER_ICON = "icon";
 
@@ -31,7 +35,7 @@ public class PingQuery extends Query {
 			int k = in.readByte();
 			i |= (k & 0x7F) << j++ * 7;
 			if (j > 5)
-				throw new RuntimeException("VarIntÀÇ °ªÀÌ ³Ê¹« Å®´Ï´Ù.");
+				throw new RuntimeException("VarIntì˜ ê°’ì´ ë„ˆë¬´ í½ë‹ˆë‹¤.");
 			if ((k & 0x80) != 128)
 				break;
 		}
@@ -81,25 +85,38 @@ public class PingQuery extends Query {
 			dos.writeByte(0x00);
 			dis = new DataInputStream(is);
 
-			int size = readVarInt(dis);
-			int id = readVarInt(dis); 
+			readVarInt(dis); // Packet Size Reading.
+			int id = readVarInt(dis);
 			if (id == -1) {
 				throw new IOException("Premature end of stream.");
 			}
 			if (id != 0x00) {
-				throw new IOException("¹ÞÀº ÆÐÅ¶ÀÇ ID°¡ ¿Ã¹Ù¸£Áö ¾Ê½À´Ï´Ù.");
+				throw new IOException("ë°›ì€ íŒ¨í‚·ì˜ IDê°€ ì˜¬ë°”ë¥´ì§€ ì•ŠìŠµë‹ˆë‹¤.");
 			}
 			int length = readVarInt(dis);
 			if (length == -1) {
 				throw new IOException("Premature end of stream.");
 			}
 			if (length == 0) {
-				throw new IOException("¿Ã¹Ù¸£Áö ¾ÊÀº ¹®ÀÚ¿­ÀÇ ±æÀÌ¸¦ ¹Þ¾Ò½À´Ï´Ù.");
+				throw new IOException("ì˜¬ë°”ë¥´ì§€ ì•Šì€ ë¬¸ìžì—´ì˜ ê¸¸ì´ë¥¼ ë°›ì•˜ìŠµë‹ˆë‹¤.");
 			}
 			byte[] data = new byte[length];
 			dis.readFully(data);
-			String json = new String(data);
-			System.out.println(json);
+
+			String raw = new String(data);
+			System.out.println(raw);
+			JsonObject json = new JsonParser().parse(raw).getAsJsonObject();
+			JsonElement desc = json.get("description");
+			StringBuilder description = new StringBuilder("");
+			if (desc.isJsonObject()) {
+				JsonObject obj = desc.getAsJsonObject();
+				parse(description, obj.get("text"));
+				parse(description, obj.get("extra"));
+			} else if (desc.isJsonPrimitive()) {
+				parse(description, desc);
+			}
+			set(MOTD, description.toString());
+			return CheckResults.CONNECTED;
 		} catch (SocketTimeoutException e) {
 			return CheckResults.TIMEOUT;
 		} catch (SocketException e) {
@@ -116,7 +133,94 @@ public class PingQuery extends Query {
 			close(is);
 			close(reader);
 		}
-		return null;
+		return CheckResults.OTHER;
+	}
+
+	void parse(StringBuilder b, JsonElement e) {
+		if (e == null || e.isJsonNull())
+			return;
+		if (e.isJsonArray()) {
+			e.getAsJsonArray().forEach(e2 -> parse(b, e2));
+		}
+		if (e.isJsonObject()) {
+			e.getAsJsonObject()
+					.entrySet()
+					.forEach(
+							entry -> {
+								if (entry.getKey().equals("text")
+										|| entry.getKey().equals("extra"))
+									parse(b, entry.getValue());
+								else if (entry.getKey().equals("color")) {
+									parseColor(b, entry.getValue()
+											.getAsString());
+								} else if (entry.getKey().equals("bold")) {
+									b.append("Â§l");
+								} else if (entry.getKey().equals("italic")) {
+									b.append("Â§o");
+								} else if (entry.getKey().equals("bold")) {
+									b.append("Â§l");
+								}
+							});
+		}
+		if (e.isJsonPrimitive()) {
+			System.out.println(e);
+			b.append(e.getAsString());
+		}
+	}
+
+	void parseColor(StringBuilder b, String c) {
+		switch (c.toLowerCase()) {
+		case "black":
+			b.append("Â§0");
+			break;
+		case "dark_blue":
+			b.append("Â§1");
+			break;
+		case "dark_green":
+			b.append("Â§2");
+			break;
+		case "dark_aqua":
+			b.append("Â§3");
+			break;
+		case "dark_red":
+			b.append("Â§4");
+			break;
+		case "dark_purple":
+			b.append("Â§5");
+			break;
+		case "gold":
+			b.append("Â§6");
+			break;
+		case "gray":
+			b.append("Â§7");
+			break;
+		case "dark_gray":
+			b.append("Â§8");
+			break;
+		case "blue":
+			b.append("Â§9");
+			break;
+		case "green":
+			b.append("Â§a");
+			break;
+		case "aqua":
+			b.append("Â§b");
+			break;
+		case "red":
+			b.append("Â§c");
+			break;
+		case "light_purple":
+			b.append("Â§d");
+			break;
+		case "yellow":
+			b.append("Â§e");
+			break;
+		case "white":
+			b.append("Â§f");
+			break;
+		default:
+			break;
+		}
 	}
 
 	void close(Closeable closeable) {
