@@ -1,10 +1,10 @@
 package me.ranol.serverisalive.utils;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Set;
 
 public class DataCollector<T> {
-	HashMap<T, Integer> collected = new HashMap<>();
+	LinkedHashMap<T, Integer> collected = new LinkedHashMap<>();
 
 	public void collect(T item) {
 		if (collected.containsKey(item))
@@ -31,5 +31,17 @@ public class DataCollector<T> {
 
 	public void clear() {
 		collected.clear();
+	}
+
+	public T min() {
+		if (collected.keySet().size() == 0)
+			return null;
+		return collected.keySet().stream().min((s1, s2) -> {
+			if (collected.get(s1) > collected.get(s2))
+				return 1;
+			else if (collected.get(s1) < collected.get(s2))
+				return -1;
+			return 0;
+		}).get();
 	}
 }

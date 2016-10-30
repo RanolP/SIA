@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -44,6 +45,7 @@ public class SimpleFrame extends JFrame {
 	JLabel players = new JLabel("플레이어: N / N");
 	Vector<PlayerObject> playerVec = new Vector<>();
 	JList<PlayerObject> playerList = new JList<>(playerVec);
+	JCheckBox mcProtocol = new JCheckBox("기본 프로토콜만 사용");
 
 	private JPanel contentPane;
 	private final ColoredPane motd = new ColoredPane();
@@ -88,9 +90,12 @@ public class SimpleFrame extends JFrame {
 				reset();
 				int port = Integer.parseInt(srvPort.getText());
 				String ip = srvIP.getText();
-				new Thread(() -> socket(ip, port)).start();
-				new Thread(() -> protocol(ip, port)).start();
-				new Thread(() -> ping(ip, port)).start();
+				new Thread(() -> ping(ip, port, mcProtocol.isSelected()))
+						.start();
+				new Thread(() -> protocol(ip, port, mcProtocol.isSelected()))
+						.start();
+				new Thread(() -> socket(ip, port, mcProtocol.isSelected()))
+						.start();
 			} catch (NumberFormatException e) {
 				showMessageBox("포트에 숫자를 넣어주세요!", "포트 설정", MessageType.WARN);
 
@@ -115,19 +120,22 @@ public class SimpleFrame extends JFrame {
 
 		icon.setBounds(12, 65, 100, 100);
 		contentPane.add(icon);
-		playerList.setForeground(Color.RED);
-		playerList.setBackground(Color.BLACK);
+
+		contentPane.add(playerList);
+		playerList.setBounds(270, 125, 302, 190);
 		playerList.setCellRenderer(new PlayerRenderer());
 
-		playerList.setBounds(270, 322, 302, -200);
 		contentPane.add(playerList);
+		mcProtocol.setSelected(true);
+		mcProtocol.setBounds(12, 283, 141, 23);
+
+		contentPane.add(mcProtocol);
 
 		setVisible(true);
 		SwingUtilities.invokeLater(() -> {
 			try {
 				UIManager.setLookAndFeel(new NimbusLookAndFeel());
 				SwingUtilities.updateComponentTreeUI(this);
-				this.repaint();
 				UIManager.setLookAndFeel(new MetalLookAndFeel());
 				SwingUtilities.updateComponentTreeUI(motd);
 				motd.repaint();
@@ -135,6 +143,7 @@ public class SimpleFrame extends JFrame {
 				icon.repaint();
 				SwingUtilities.updateComponentTreeUI(playerList);
 				playerList.repaint();
+				this.repaint();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -148,11 +157,12 @@ public class SimpleFrame extends JFrame {
 		cMotd.clear();
 	}
 
-	private void ping(String ip, int port) {
+	private void ping(String ip, int port, boolean sel) {
 		PingQuery query = new PingQuery(ip, port);
 		CheckResults result = query.connect();
 		icon.setImage(null);
 		if (result == CheckResults.CONNECTED) {
+			setMotd(query.getMotd());
 			collect(query.getMotd(),
 					query.getPlayers(),
 					query.getMaxPlayers(),
@@ -160,17 +170,17 @@ public class SimpleFrame extends JFrame {
 							query.getServerIcon()).set(PingQuery.USER_NICKNAME,
 							query.getOnlineUsers()));
 		}
-		increase(34);
+		increase(sel ? 50 : 34);
 	}
 
-	private void protocol(String ip, int port) {
+	private void protocol(String ip, int port, boolean sel) {
 		Query query = new ProtocolQuery(ip, port);
 		CheckResults result = query.connect();
 		if (result == CheckResults.CONNECTED) {
 			collect(query.getMotd(), query.getPlayers(), query.getMaxPlayers(),
 					null);
 		}
-		increase(33);
+		increase(sel ? 50 : 33);
 	}
 
 	DataCollector<String> cMotd = new DataCollector<>();
@@ -187,13 +197,15 @@ public class SimpleFrame extends JFrame {
 			icon.setImage(map.get(PingQuery.SERVER_ICON));
 		}
 		if (map.containsKey(PingQuery.USER_NICKNAME)) {
+			playerVec.clear();
 			playerVec.addAll(map.get(PingQuery.USER_NICKNAME));
 			playerList.updateUI();
-			System.out.println(map.get(PingQuery.USER_NICKNAME));
 		}
 	}
 
-	private void socket(String ip, int port) {
+	private void socket(String ip, int port, boolean sel) {
+		if (sel)
+			return;
 		Query query = new SocketQuery(ip, port);
 		CheckResults result = query.connect();
 		if (result == CheckResults.CONNECTED) {
@@ -241,7 +253,7 @@ public class SimpleFrame extends JFrame {
 				bis[0] = true;
 			if (code.equals("o"))
 				bis[1] = true;
-			if (code.equals("s"))
+			if (code.equals("m"))
 				bis[2] = true;
 			if (code.matches("[0-9a-f]+")) {
 				lastColor = Colors.getByCode("§" + code).getAWTColor();
@@ -265,8 +277,8 @@ public class SimpleFrame extends JFrame {
 			lastColor = Colors.getByCode("§" + code).getAWTColor();
 			Arrays.fill(bis, false);
 		}
-		String text = s.substring(last, s.length()).replaceAll("§[0-9a-f]{1}",
-				"");
+		String text = s.substring(last, s.length()).replaceAll(
+				"§[0-9a-flom]{1}", "");
 		motd.appendText(sas, bis, lastColor, text);
 	}
 

@@ -8,20 +8,19 @@ import java.awt.image.BufferedImage;
 
 public class PictureBox extends Canvas {
 	private static final long serialVersionUID = 1L;
-	BufferedImage buffer = null;
+	Image buffer = null;
 
 	public PictureBox() {
 	}
 
-	public boolean setImage(BufferedImage img) {
+	public void setImage(BufferedImage img) {
 		if (img != null) {
-			buffer = img;
+			buffer = toImage(img);
 			repaint();
 		} else {
 			buffer = null;
 			repaint();
 		}
-		return true;
 	}
 
 	@Override
@@ -31,7 +30,7 @@ public class PictureBox extends Canvas {
 
 	public void paint(Graphics g) {
 		if (buffer != null) {
-			g.drawImage(toImage(buffer), 0, 0, getWidth(), getHeight(), this);
+			g.drawImage(buffer, 0, 0, getWidth(), getHeight(), this);
 		} else {
 			g.setColor(getParent().getBackground());
 			g.fillRect(0, 0, getWidth(), getHeight());
