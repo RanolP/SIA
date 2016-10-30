@@ -45,6 +45,7 @@ public class SimpleFrame extends JFrame {
 	JLabel players = new JLabel("플레이어: N / N");
 	Vector<PlayerObject> playerVec = new Vector<>();
 	JList<PlayerObject> playerList = new JList<>(playerVec);
+	JLabel status = new JLabel("None");
 	JCheckBox mcProtocol = new JCheckBox("기본 프로토콜만 사용");
 
 	private JPanel contentPane;
@@ -90,6 +91,18 @@ public class SimpleFrame extends JFrame {
 				reset();
 				int port = Integer.parseInt(srvPort.getText());
 				String ip = srvIP.getText();
+				new Thread(() -> {
+					System.out.println("Alive Check");
+					if (Query.isAlive(ip, port, 1500)) {
+						status.setText("Server Online");
+						status.setForeground(Color.GREEN);
+						System.out.println("On");
+					} else {
+						status.setText("Server Offline");
+						status.setForeground(Color.RED);
+						System.out.println("Off");
+					}
+				}).start();
 				new Thread(() -> ping(ip, port, mcProtocol.isSelected()))
 						.start();
 				new Thread(() -> protocol(ip, port, mcProtocol.isSelected()))
@@ -103,6 +116,7 @@ public class SimpleFrame extends JFrame {
 		});
 
 		JLabel lblMotd = new JLabel("Motd:");
+		status.setForeground(Color.GRAY);
 		lblMotd.setBounds(92, 44, 45, 15);
 		contentPane.add(lblMotd);
 		motd.setBackground(Color.BLACK);
@@ -130,6 +144,9 @@ public class SimpleFrame extends JFrame {
 		mcProtocol.setBounds(12, 283, 141, 23);
 
 		contentPane.add(mcProtocol);
+		status.setBounds(130, 100, 128, 15);
+
+		contentPane.add(status);
 
 		setVisible(true);
 		SwingUtilities.invokeLater(() -> {
