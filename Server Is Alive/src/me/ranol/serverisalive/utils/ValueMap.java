@@ -29,4 +29,9 @@ public class ValueMap {
 	public boolean containsKey(String key) {
 		return real.containsKey(key);
 	}
+
+	@Override
+	public String toString() {
+		return real.toString();
+	}
 }

@@ -3,7 +3,6 @@ package me.ranol.serverisalive.checker;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
@@ -23,8 +22,7 @@ public class SocketQuery extends Query {
 	@Override
 	public CheckResults connect() {
 		try (Socket socket = new Socket()) {
-			InetAddress address = InetAddress.getByName(getIPAddress());
-			socket.connect(new InetSocketAddress(address, getPort()),
+			socket.connect(new InetSocketAddress(getIPAddress(), getPort()),
 					Options.get(Options.TIMEOUT));
 			DataOutputStream dos = new DataOutputStream(
 					socket.getOutputStream());
@@ -48,10 +46,10 @@ public class SocketQuery extends Query {
 			String result = builder.toString();
 			int temp;
 			int max = Integer.parseInt(result.substring(temp = result
-					.lastIndexOf("¡×") + 1));
+					.lastIndexOf("Â§") + 1));
 			result = result.substring(0, temp - 1);
 			int con = Integer.parseInt(result.substring(temp = result
-					.lastIndexOf("¡×") + 1));
+					.lastIndexOf("Â§") + 1));
 			result = result.substring(0, temp - 1);
 			set(MOTD, result);
 			set(PLAYERS, con);
@@ -60,7 +58,7 @@ public class SocketQuery extends Query {
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 		} catch (UnknownHostException e) {
-			e.printStackTrace();
+			return CheckResults.UNKNOWN_HOST;
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		} catch (SocketTimeoutException e) {
@@ -71,7 +69,7 @@ public class SocketQuery extends Query {
 			e.printStackTrace();
 		} catch (SocketException e) {
 			if (e.getMessage().equals("Socket closed")) {
-				set(MOTD, "¼ÒÄÏ ¹æ½Ä ¿¬°áÀ» Áö¿øÇÏÁö ¾Ê´Â ¼­¹öÀÔ´Ï´Ù.");
+				set(MOTD, "ì†Œì¼“ ë°©ì‹ ì—°ê²°ì„ ì§€ì›í•˜ì§€ ì•ŠëŠ” ì„œë²„ì…ë‹ˆë‹¤.");
 				set(PLAYERS, 0);
 				set(MAX_PLAYERS, 0);
 				return CheckResults.CANT_CONNECT;
@@ -79,8 +77,8 @@ public class SocketQuery extends Query {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		if (!isAlive(1500)) {
-			set(MOTD, "ÇöÀç ¼­¹ö´Â ¿ÀÇÁ¶óÀÎÀÔ´Ï´Ù.");
+		if (!isAlive(getIPAddress(), getPort(), 1500)) {
+			set(MOTD, "í˜„ì¬ ì„œë²„ëŠ” ì˜¤í”„ë¼ì¸ì…ë‹ˆë‹¤.");
 			set(PLAYERS, 0);
 			set(MAX_PLAYERS, 0);
 			return CheckResults.SERVER_OFFLINE;

@@ -1,6 +1,5 @@
 package me.ranol.serverisalive.checker;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Set;
@@ -29,10 +28,9 @@ public abstract class Query {
 		return get(IP);
 	}
 
-	public boolean isAlive(int checkDuration) {
+	public static boolean isAlive(String ip, int port, int checkDuration) {
 		try (Socket s = new Socket()) {
-			InetAddress address = InetAddress.getByName(getIPAddress());
-			s.connect(new InetSocketAddress(address, getPort()), checkDuration);
+			s.connect(new InetSocketAddress(ip, port), checkDuration);
 			return true;
 		} catch (Exception e) {
 		}
@@ -73,7 +71,6 @@ public abstract class Query {
 		return values.keys();
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T> T get(String key) {
 		if (values.containsKey(key))
 			return (T) values.get(key);

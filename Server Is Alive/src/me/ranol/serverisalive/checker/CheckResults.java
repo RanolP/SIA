@@ -11,5 +11,7 @@ public enum CheckResults {
 
 	OTHER,
 
-	TIMEOUT
+	TIMEOUT,
+
+	UNKNOWN_HOST
 }

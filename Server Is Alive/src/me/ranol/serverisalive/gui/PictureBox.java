@@ -1,7 +1,6 @@
-package me.ranol.serverisalive.utils;
+package me.ranol.serverisalive.gui;
 
 import java.awt.Canvas;
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Toolkit;

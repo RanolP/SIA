@@ -1,5 +1,6 @@
 package me.ranol.serverisalive.checker;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.DataInputStream;
@@ -8,23 +9,30 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 
 import me.ranol.serverisalive.Options;
+import me.ranol.serverisalive.gui.PlayerObject;
+import me.ranol.serverisalive.utils.ImageDecoder;
 import me.ranol.serverisalive.utils.MotdParser;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class PingQuery extends Query {
 	public static final String SERVER_ICON = "icon";
+	public static final String USER_NICKNAME = "nicknames";
 
 	public PingQuery(String ip, int port) {
 		super(ip, port);
@@ -63,8 +71,8 @@ public class PingQuery extends Query {
 
 		try (Socket socket = new Socket()) {
 			socket.setSoTimeout(Options.get(Options.TIMEOUT));
-			InetSocketAddress address = new InetSocketAddress(
-					InetAddress.getByName(getIPAddress()), getPort());
+			InetSocketAddress address = new InetSocketAddress(getIPAddress(),
+					getPort());
 			socket.connect(address, Options.get(Options.TIMEOUT));
 			dos = new DataOutputStream(socket.getOutputStream());
 			is = socket.getInputStream();
@@ -105,7 +113,6 @@ public class PingQuery extends Query {
 			dis.readFully(data);
 
 			String raw = new String(data);
-			System.out.println(raw);
 			JsonObject json = new JsonParser().parse(raw).getAsJsonObject();
 			JsonElement desc = json.get("description");
 			StringBuilder description = new StringBuilder("");
@@ -116,6 +123,33 @@ public class PingQuery extends Query {
 			} else if (desc.isJsonPrimitive()) {
 				MotdParser.parse(description, desc);
 			}
+			JsonElement player = json.get("players");
+			if (player.isJsonObject()) {
+				JsonObject obj = player.getAsJsonObject();
+				set(MAX_PLAYERS, obj.get("max").getAsInt());
+				set(PLAYERS, obj.get("online").getAsInt());
+				JsonElement sample = obj.get("sample");
+				set(USER_NICKNAME, Collections.emptyList());
+				if (sample != null && !sample.isJsonNull()) {
+					JsonArray array = sample.getAsJsonArray();
+					List<PlayerObject> players = new ArrayList<>();
+					array.forEach(e -> {
+						if (e.isJsonObject()) {
+							players.add(new PlayerObject(e.getAsJsonObject()
+									.get("name").getAsString(), e
+									.getAsJsonObject().get("id").getAsString()));
+						}
+					});
+					set(USER_NICKNAME, players);
+				}
+			}
+			JsonElement favicon = json.get("favicon");
+			if (favicon.isJsonPrimitive()) {
+				BufferedImage img = ImageDecoder.read(Base64.getDecoder()
+						.decode(favicon.getAsString().split(",")[1].replace(
+								"\n", "").replace("\r", "")));
+				set(SERVER_ICON, img);
+			}
 			set(MOTD, description.toString());
 			return CheckResults.CONNECTED;
 		} catch (SocketTimeoutException e) {
@@ -123,7 +157,7 @@ public class PingQuery extends Query {
 		} catch (SocketException e) {
 			e.printStackTrace();
 		} catch (UnknownHostException e) {
-			e.printStackTrace();
+			return CheckResults.UNKNOWN_HOST;
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -144,5 +178,13 @@ public class PingQuery extends Query {
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
 			}
+	}
+
+	public BufferedImage getServerIcon() {
+		return get(SERVER_ICON);
+	}
+
+	public List<PlayerObject> getOnlineUsers() {
+		return get(USER_NICKNAME);
 	}
 }

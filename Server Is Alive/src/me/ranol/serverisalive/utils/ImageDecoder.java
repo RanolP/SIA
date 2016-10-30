@@ -7,9 +7,9 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public class ImageDecoder {
-	public BufferedImage read(String s) {
+	public static BufferedImage read(byte[] s) {
 		BufferedImage result = null;
-		ByteArrayInputStream bais = new ByteArrayInputStream(s.getBytes());
+		ByteArrayInputStream bais = new ByteArrayInputStream(s);
 		try {
 			result = ImageIO.read(bais);
 		} catch (IOException ex) {

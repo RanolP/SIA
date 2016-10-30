@@ -8,7 +8,6 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.channels.IllegalBlockingModeException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,6 +30,38 @@ public class ProtocolQuery extends Query {
 
 	public ProtocolQuery(String ip, int queryport) {
 		super(ip, queryport);
+	}
+
+	public String getGameId() {
+		return get(GAME_ID);
+	}
+
+	public String getGameType() {
+		return get(GAME_TYPE);
+	}
+
+	public String getMinecraftVersion() {
+		return get(VERSION);
+	}
+
+	public int getServerPort() {
+		return get(SERVER_PORT);
+	}
+
+	public String getServerIP() {
+		return get(SERVER_IP);
+	}
+
+	public String getMapName() {
+		return get(MAP_NAME);
+	}
+
+	public List<String> getPlugins() {
+		return get(PLUGINS);
+	}
+
+	public String getBukkitName() {
+		return get(BUKKIT_NAME);
 	}
 
 	@Override
@@ -66,7 +97,7 @@ public class ProtocolQuery extends Query {
 					key = new String(temp);
 					continue;
 				} else {
-					values.put(key, new String(temp, Charset.forName("UTF-8")));
+					values.put(key, new String(temp));
 					key = null;
 					continue;
 				}
@@ -110,7 +141,7 @@ public class ProtocolQuery extends Query {
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		} catch (UnknownHostException e) {
-			e.printStackTrace();
+			return CheckResults.UNKNOWN_HOST;
 		} catch (IllegalBlockingModeException e) {
 			e.printStackTrace();
 		} catch (IllegalArgumentException e) {

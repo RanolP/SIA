@@ -1,5 +1,7 @@
 package me.ranol.serverisalive.utils;
 
+import java.awt.Color;
+
 import com.google.gson.JsonElement;
 
 public class MotdParser {
@@ -37,46 +39,60 @@ public class MotdParser {
 		b.append(Colors.valueOf(c.toUpperCase()).getValue());
 	}
 
-	enum Colors {
-		BLACK("§0"),
+	public static enum Colors {
+		BLACK("§0", new Color(0, 0, 0)),
 
-		DARK_BLUE("§1"),
+		DARK_BLUE("§1", new Color(0, 0, 170)),
 
-		DARK_GREEN("§2"),
+		DARK_GREEN("§2", new Color(0, 170, 0)),
 
-		DARK_AQUA("§3"),
+		DARK_AQUA("§3", new Color(0, 170, 170)),
 
-		DARK_RED("§4"),
+		DARK_RED("§4", new Color(170, 0, 0)),
 
-		DARK_PURPLE("§5"),
+		DARK_PURPLE("§5", new Color(170, 0, 170)),
 
-		GOLD("§6"),
+		GOLD("§6", new Color(255, 170, 0)),
 
-		GRAY("§7"),
+		GRAY("§7", new Color(170, 170, 170)),
 
-		DARK_GRAY("§8"),
+		DARK_GRAY("§8", new Color(85, 85, 85)),
 
-		BLUE("§9"),
+		BLUE("§9", new Color(85, 85, 255)),
 
-		GREEN("§a"),
+		GREEN("§a", new Color(85, 255, 85)),
 
-		AQUA("§b"),
+		AQUA("§b", new Color(85, 255, 255)),
 
-		RED("§c"),
+		RED("§c", new Color(255, 85, 85)),
 
-		LIGHT_PURPLE("§d"),
+		LIGHT_PURPLE("§d", new Color(255, 85, 255)),
 
-		YELLOW("§e"),
+		YELLOW("§e", new Color(255, 255, 85)),
 
-		white("§f");
+		WHITE("§f", new Color(255, 255, 255));
 		String value;
+		Color awt;
 
-		Colors(String value) {
+		Colors(String value, Color awt) {
 			this.value = value;
+			this.awt = awt;
 		}
 
 		public String getValue() {
 			return value;
+		}
+
+		public Color getAWTColor() {
+			return awt;
+		}
+
+		public static Colors getByCode(String code) {
+			for (Colors c : values()) {
+				if (c.getValue().equals(code))
+					return c;
+			}
+			return null;
 		}
 	}
 }
