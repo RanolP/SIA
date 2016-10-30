@@ -1,7 +1,6 @@
 package me.ranol.serverisalive.checker;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -16,8 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import me.ranol.serverisalive.Options;
 import me.ranol.serverisalive.utils.ByteUtils;
+import me.ranol.serverisalive.utils.UDPUtils;
 
 public class ProtocolQuery extends Query {
 	public static final String VERSION = "mcversion";
@@ -30,30 +29,29 @@ public class ProtocolQuery extends Query {
 	public static final String BUKKIT_NAME = "bukkit";
 	public static final String CURRENT_PLAYERS = "currplayer";
 
-	public ProtocolQuery(String ip, int port) {
-		super(ip, port);
+	public ProtocolQuery(String ip, int queryport) {
+		super(ip, queryport);
 	}
 
 	@Override
 	public CheckResults connect() {
-		try (DatagramSocket udp = new DatagramSocket()) {
+		try (DatagramSocket udp = UDPUtils.createDefaultSocket()) {
 			InetSocketAddress address = new InetSocketAddress(
 					InetAddress.getByName(getIPAddress()), getPort());
-			udp.setSoTimeout(Options.get(Options.TIMEOUT));
-			sendPacket(udp, address, 0xFE, 0xFD, 0x09, 0x01, 0x01, 0x01, 0x01);
+			UDPUtils.sendPacket(udp, address, 0xFE, 0xFD, 0x09, 0x01, 0x01,
+					0x01, 0x01);
 			byte[] recieve = new byte[10240];
 			int challenge;
 			{
-				recievePacket(udp, recieve);
+				UDPUtils.recievePacket(udp, recieve);
 				byte[] buffer = new byte[11];
 				System.arraycopy(recieve, 5, buffer, 0, buffer.length);
 				challenge = Integer.parseInt(new String(buffer).trim());
 			}
-			sendPacket(udp, address, 0xFE, 0xFD, 0x00, 0x01, 0x01, 0x01, 0x01,
-					challenge >> 24, challenge >> 16, challenge >> 8,
-					challenge, 0x00, 0x00, 0x00, 0x00);
-			recievePacket(udp, recieve);
-			System.out.println(Arrays.toString(recieve));
+			UDPUtils.sendPacket(udp, address, 0xFE, 0xFD, 0x00, 0x01, 0x01,
+					0x01, 0x01, challenge >> 24, challenge >> 16,
+					challenge >> 8, challenge, 0x00, 0x00, 0x00, 0x00);
+			UDPUtils.recievePacket(udp, recieve);
 			recieve = ByteUtils.removeFirst(recieve, 5);
 			String key = null;
 			int last = 0;
@@ -124,28 +122,4 @@ public class ProtocolQuery extends Query {
 		}
 		return CheckResults.OTHER;
 	}
-
-	void sendPacket(DatagramSocket soc, InetSocketAddress address, byte... data)
-			throws IOException {
-		DatagramPacket packet = new DatagramPacket(data, data.length,
-				address.getAddress(), address.getPort());
-		soc.send(packet);
-	}
-
-	void sendPacket(DatagramSocket soc, InetSocketAddress address, int... data)
-			throws IOException {
-		byte[] d = new byte[data.length];
-		for (int i = 0; i < data.length; i++) {
-			d[i] = (byte) (data[i] & 0xff);
-		}
-		sendPacket(soc, address, d);
-	}
-
-	DatagramPacket recievePacket(DatagramSocket soc, byte[] buffer)
-			throws IOException {
-		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-		soc.receive(packet);
-		return packet;
-	}
-
 }

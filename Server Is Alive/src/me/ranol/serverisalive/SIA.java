@@ -1,5 +1,8 @@
 package me.ranol.serverisalive;
 
+import java.util.Scanner;
+
+import me.ranol.serverisalive.checker.PingQuery;
 import me.ranol.serverisalive.checker.Query;
 import me.ranol.serverisalive.checker.CheckResults;
 import me.ranol.serverisalive.checker.ProtocolQuery;
@@ -7,12 +10,39 @@ import me.ranol.serverisalive.checker.SocketQuery;
 
 public class SIA {
 	public static void main(String[] args) throws Exception {
+		Scanner scn = new Scanner(System.in);
 		Options.set(Options.TIMEOUT, 3000);
-		protocol("127.0.0.1", 8080);
+		while (true) {
+			System.out.print("아이피 입력[stop으로 종료]: ");
+			String ip = scn.nextLine();
+			if (ip.equals("stop"))
+				break;
+			boolean val = true;
+			while (val) {
+				System.out.print("연결 코드[s/pr/pi]: ");
+				String c = scn.nextLine();
+				if (c.startsWith("s")) {
+					socket(ip, 25565);
+					val = false;
+				} else if (c.startsWith("pr")) {
+					protocol(ip, 25565);
+					val = false;
+				} else if (c.startsWith("pi")) {
+					ping(ip, 25565);
+					val = false;
+				}
+			}
+		}
+		scn.close();
 	}
 
 	static void socket(String ip, int port) {
 		Query query = new SocketQuery(ip, port);
+		def(query);
+	}
+
+	static void ping(String ip, int port) {
+		Query query = new PingQuery(ip, port);
 		def(query);
 	}
 

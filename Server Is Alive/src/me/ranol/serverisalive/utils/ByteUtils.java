@@ -38,4 +38,16 @@ public class ByteUtils {
 	public static byte[] removeFirst(byte[] target, int start) {
 		return Arrays.copyOfRange(target, start, target.length);
 	}
+
+	public static byte[] append(byte[] real, byte... data) {
+		byte[] result = new byte[real.length + data.length];
+		System.arraycopy(real, 0, result, 0, real.length);
+		System.arraycopy(data, 0, result, real.length, data.length);
+		return result;
+	}
+
+	public static byte[] insert(byte[] real, int index, byte... data) {
+		return append(append(cut(real, 0, index), data),
+				cut(real, index, real.length));
+	}
 }
