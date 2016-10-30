@@ -82,7 +82,7 @@ public class PingQuery extends Query {
 			dis = new DataInputStream(is);
 
 			int size = readVarInt(dis);
-			int id = readVarInt(dis);
+			int id = readVarInt(dis); 
 			if (id == -1) {
 				throw new IOException("Premature end of stream.");
 			}
