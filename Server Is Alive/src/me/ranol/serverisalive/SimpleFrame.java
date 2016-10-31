@@ -2,7 +2,8 @@ package me.ranol.serverisalive;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -44,13 +45,22 @@ public class SimpleFrame extends JFrame {
 	public static Font MINECRAFTIA;
 	{
 		try {
-			MINECRAFTIA = Font.createFont(Font.PLAIN,
-					new File("fonts\\Minecraftia.ttf")).deriveFont(12.5f);
+			URL url = ClassLoader.getSystemResource("Minecraftia.ttf");
+			if (url == null) {
+				showMessageBox(
+						"파일 내부에 Minecraftia.ttf가 존재하지 않습니다.\nMotd 파싱 시 기본 폰트로 보여집니다",
+						"폰트", MessageType.INFO);
+				MINECRAFTIA = getFont().deriveFont(12.5f);
+			} else {
+				InputStream is = url.openStream();
+				MINECRAFTIA = Font.createFont(Font.PLAIN, is).deriveFont(12.5f);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 
 		}
 	}
+
 	PictureBox icon = new PictureBox();
 	JTextArea srvIP = new JTextArea("localhost");
 	JTextArea srvPort = new JTextArea("25565");
@@ -73,6 +83,7 @@ public class SimpleFrame extends JFrame {
 	public SimpleFrame() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 600, 400);
+		setResizable(false);
 		setTitle("[SIA - Server Is Alive?] Minecraft Server Checker");
 
 		contentPane = new JPanel();
@@ -284,7 +295,7 @@ public class SimpleFrame extends JFrame {
 	}
 
 	private void socket(String ip, int port, boolean sel) {
-		if (sel) 
+		if (sel)
 			return;
 		Query query = new SocketQuery(ip, port);
 		CheckResults result = query.connect();
@@ -319,7 +330,6 @@ public class SimpleFrame extends JFrame {
 	}
 
 	void setMotd(String s) {
-		System.out.println(s);
 		SimpleAttributeSet sas = new SimpleAttributeSet();
 		boolean[] bis = new boolean[3];
 		Arrays.fill(bis, false);

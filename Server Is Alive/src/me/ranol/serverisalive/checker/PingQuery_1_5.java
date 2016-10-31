@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
@@ -64,10 +65,10 @@ public class PingQuery_1_5 extends PingQuery {
 				set(PLAYERS, Integer.parseInt(arr[4]));
 				set(MAX_PLAYERS, Integer.parseInt(arr[5]));
 			} else {
-				System.out.println(s);
+				System.out.println("PING_1_5: " + s);
 			}
 			return CheckResults.CONNECTED;
-		} catch (SocketTimeoutException e) {
+		} catch (ConnectException | SocketTimeoutException e) {
 			return CheckResults.TIMEOUT;
 		} catch (SocketException e) {
 			e.printStackTrace();

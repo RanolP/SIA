@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
@@ -51,23 +52,42 @@ public class PingQuery_1_6 extends PingQuery {
 				throw new IOException("패킷 ID가 올바르지 않습니다.");
 			}
 			String s = readLegacyString(dis);
-			if (s.startsWith("§")) {
+			if (s.matches("§[a-f0-9]{1}.+")) {
+			} else if (s.startsWith("§")) {
 				String[] arr = s.substring(1).split("\0");
-				set(PING_VERSION, Integer.parseInt(arr[0]));
-				set(PROTOCOL_VERSION, Integer.parseInt(arr[1]));
-				set(VERSION, arr[2]);
-				set(MOTD, arr[3]);
-				set(PLAYERS, Integer.parseInt(arr[4]));
-				set(MAX_PLAYERS, Integer.parseInt(arr[5]));
+				try {
+					set(PING_VERSION, Integer.parseInt(arr[0]));
+					set(PROTOCOL_VERSION, Integer.parseInt(arr[1]));
+					set(VERSION, arr[2]);
+					set(MOTD, arr[3]);
+					set(PLAYERS, Integer.parseInt(arr[arr.length - 2]));
+					set(MAX_PLAYERS, Integer.parseInt(arr[arr.length - 1]));
+				} catch (NumberFormatException e) {
+					String[] array = s.split("§");
+					set(MOTD,
+							s.substring(
+									0,
+									s.length()
+											- array[array.length - 2].length()
+											+ array[array.length - 1].length()));
+					set(PLAYERS, Integer.parseInt(array[array.length - 2]));
+					set(MAX_PLAYERS, Integer.parseInt(array[array.length - 1]));
+					set(PING_VERSION, -1);
+					set(PROTOCOL_VERSION, -1);
+					set(VERSION, "???");
+					System.out.println(getMotd());
+					System.out.println(getPlayers());
+					System.out.println(getMaxPlayers());
+				}
 			} else {
-				System.out.println(s);
+				System.out.println("PING_1_6: " + s);
 			}
 			set(PROTOCOL_VERSION, 0);
 			return CheckResults.CONNECTED;
+		} catch (ConnectException | SocketTimeoutException e) {
+			return CheckResults.TIMEOUT;
 		} catch (EOFException e) {
 			return CheckResults.CANT_CONNECT;
-		} catch (SocketTimeoutException e) {
-			return CheckResults.TIMEOUT;
 		} catch (SocketException e) {
 			e.printStackTrace();
 		} catch (UnknownHostException e) {
@@ -88,6 +108,17 @@ public class PingQuery_1_6 extends PingQuery {
 			close(is);
 		}
 		return CheckResults.OTHER;
+	}
+
+	String[] parse(String s) {
+		String[] split = s.split("§");
+		String[] data = { split[0], split[1], split[2], null,
+				split[split.length - 2], split[split.length - 1] };
+		data[4] = "";
+		for (int i = 3; i < split.length - 2; i++) {
+			data[4] += "§" + split[i];
+		}
+		return data;
 	}
 
 	private String readLegacyString(DataInputStream dis) throws IOException {

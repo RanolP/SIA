@@ -7,6 +7,7 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
@@ -82,7 +83,7 @@ public class PingQuery_1_7 extends PingQuery {
 			byte[] data = new byte[length];
 			dis.readFully(data);
 
-			String raw = new String(data);
+			String raw = new String(data, StandardCharsets.UTF_8);
 			JsonObject json = new JsonParser().parse(raw).getAsJsonObject();
 			JsonElement desc = json.get("description");
 			StringBuilder description = new StringBuilder("");
@@ -114,7 +115,7 @@ public class PingQuery_1_7 extends PingQuery {
 				}
 			}
 			JsonElement favicon = json.get("favicon");
-			if (favicon.isJsonPrimitive()) {
+			if (favicon != null && favicon.isJsonPrimitive()) {
 				BufferedImage img = ImageDecoder.read(Base64.getDecoder()
 						.decode(favicon.getAsString().split(",")[1].replace(
 								"\n", "").replace("\r", "")));
@@ -132,7 +133,7 @@ public class PingQuery_1_7 extends PingQuery {
 			}
 			set(MOTD, description.toString());
 			return CheckResults.CONNECTED;
-		} catch (SocketTimeoutException e) {
+		} catch (ConnectException | SocketTimeoutException e) {
 			return CheckResults.TIMEOUT;
 		} catch (SocketException e) {
 			e.printStackTrace();
