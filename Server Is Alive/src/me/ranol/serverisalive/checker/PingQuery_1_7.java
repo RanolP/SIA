@@ -67,14 +67,14 @@ public class PingQuery_1_7 extends PingQuery {
 			readVarInt(dis); // Packet Size Reading.
 			int id = readVarInt(dis);
 			if (id == -1) {
-				throw new IOException("Premature end of stream.");
+				throw new IOException("스트림이 조기 종료되었습니다.");
 			}
 			if (id != 0x00) {
-				throw new IOException("받은 패킷의 ID가 올바르지 않습니다.");
+				throw new IOException("패킷 ID가 올바르지 않습니다.");
 			}
 			int length = readVarInt(dis);
 			if (length == -1) {
-				throw new IOException("Premature end of stream.");
+				throw new IOException("스트림이 조기 종료되었습니다.");
 			}
 			if (length == 0) {
 				throw new IOException("올바르지 않은 문자열의 길이를 받았습니다.");
@@ -124,11 +124,11 @@ public class PingQuery_1_7 extends PingQuery {
 			if (version.isJsonObject()) {
 				JsonObject obj = version.getAsJsonObject();
 				JsonElement name = obj.get("name");
-				if (!name.isJsonNull())
+				if (name.isJsonPrimitive())
 					set(VERSION, name.getAsString());
 				JsonElement protocol = obj.get("protocol");
-				if (!protocol.isJsonNull())
-					set(VERSION, name.getAsInt());
+				if (protocol.isJsonPrimitive())
+					set(PROTOCOL_VERSION, protocol.getAsInt());
 			}
 			set(MOTD, description.toString());
 			return CheckResults.CONNECTED;
@@ -143,6 +143,15 @@ public class PingQuery_1_7 extends PingQuery {
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
+			switch (e.getMessage()) {
+			case "패킷 ID가 올바르지 않습니다.":
+				return CheckResults.INVALID_PACKET;
+			case "올바르지 않은 문자열의 길이를 받았습니다.":
+			case "스트림이 조기 종료되었습니다.":
+				return CheckResults.CANT_CONNECT;
+			default:
+				break;
+			}
 			e.printStackTrace();
 		} finally {
 			close(dos);

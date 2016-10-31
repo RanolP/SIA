@@ -13,5 +13,7 @@ public enum CheckResults {
 
 	TIMEOUT,
 
-	UNKNOWN_HOST
+	UNKNOWN_HOST,
+	
+	INVALID_PACKET
 }

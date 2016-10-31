@@ -12,6 +12,10 @@ public abstract class PingQuery extends Query {
 		return get(PROTOCOL_VERSION);
 	}
 
+	public String getMinecraftVersion() {
+		return get(VERSION);
+	}
+
 	public PingQuery(String ip, int port) {
 		super(ip, port);
 	}

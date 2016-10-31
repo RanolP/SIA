@@ -23,6 +23,7 @@ import javax.swing.text.SimpleAttributeSet;
 
 import me.ranol.serverisalive.checker.CheckResults;
 import me.ranol.serverisalive.checker.PingQuery_1_5;
+import me.ranol.serverisalive.checker.PingQuery_1_6;
 import me.ranol.serverisalive.checker.PingQuery_1_7;
 import me.ranol.serverisalive.checker.ProtocolQuery;
 import me.ranol.serverisalive.checker.Query;
@@ -94,7 +95,8 @@ public class SimpleFrame extends JFrame {
 			try {
 				reset();
 				int port = Integer.parseInt(srvPort.getText());
-				String ip = srvIP.getText();
+				String ip = srvIP.getText().replace("\n", "").replace("\r", "")
+						.trim();
 				new Thread(() -> {
 					if (Query.isAlive(ip, port, 1500)) {
 						status.setText("[✓] On");
@@ -104,7 +106,11 @@ public class SimpleFrame extends JFrame {
 						status.setForeground(Colors.RED.getAWTColor());
 					}
 				}).start();
-				new Thread(() -> ping(ip, port, mcProtocol.isSelected()))
+				new Thread(() -> ping_1_5(ip, port, mcProtocol.isSelected()))
+						.start();
+				new Thread(() -> ping_1_6(ip, port, mcProtocol.isSelected()))
+						.start();
+				new Thread(() -> ping_1_7(ip, port, mcProtocol.isSelected()))
 						.start();
 				new Thread(() -> protocol(ip, port, mcProtocol.isSelected()))
 						.start();
@@ -147,7 +153,7 @@ public class SimpleFrame extends JFrame {
 
 		bukkit.setBounds(352, 100, 220, 15);
 		contentPane.add(bukkit);
-		version.setBounds(130, 125, 57, 15);
+		version.setBounds(12, 145, 178, 15);
 
 		contentPane.add(version);
 
@@ -172,24 +178,45 @@ public class SimpleFrame extends JFrame {
 
 	private void reset() {
 		set(0);
+		icon.setImage(null);
 		cOnline.clear();
 		cMax.clear();
 		cMotd.clear();
+		cVer.clear();
 	}
 
-	private void ping(String ip, int port, boolean sel) {
-		icon.setImage(null);
-		PingQuery_1_5 query2 = new PingQuery_1_5(ip, port);
-		CheckResults result = query2.connect();
+	private void ping_1_5(String ip, int port, boolean sel) {
+		PingQuery_1_5 query = new PingQuery_1_5(ip, port);
+		CheckResults result = query.connect();
 		if (result == CheckResults.CONNECTED) {
-			collect(query2.getMotd(),
-					query2.getPlayers(),
-					query2.getMaxPlayers(),
+			collect(query.getMotd(),
+					query.getPlayers(),
+					query.getMaxPlayers(),
 					new ValueMap().set(QueryKeys.PROTOCOL_VERSION,
-							query2.getProtocolVersion()));
+							query.getProtocolVersion()).set(QueryKeys.VERSION,
+							query.getMinecraftVersion()));
 		}
+		increase(sel ? 25 : 20);
+	}
+
+	private void ping_1_6(String ip, int port, boolean sel) {
+		PingQuery_1_6 query = new PingQuery_1_6(ip, port);
+		CheckResults result = query.connect();
+		if (result == CheckResults.CONNECTED) {
+			collect(query.getMotd(),
+					query.getPlayers(),
+					query.getMaxPlayers(),
+					new ValueMap().set(QueryKeys.PROTOCOL_VERSION,
+							query.getProtocolVersion()).set(QueryKeys.VERSION,
+							query.getMinecraftVersion()));
+		}
+		increase(sel ? 25 : 20);
+	}
+
+	private void ping_1_7(String ip, int port, boolean sel) {
+
 		PingQuery_1_7 query = new PingQuery_1_7(ip, port);
-		result = query.connect();
+		CheckResults result = query.connect();
 		if (result == CheckResults.CONNECTED) {
 			collect(query.getMotd(),
 					query.getPlayers(),
@@ -199,9 +226,10 @@ public class SimpleFrame extends JFrame {
 							.set(QueryKeys.ONLINE_PLAYERS,
 									query.getOnlineUsers())
 							.set(QueryKeys.PROTOCOL_VERSION,
-									query.getProtocolVersion()));
+									query.getProtocolVersion())
+							.set(QueryKeys.VERSION, query.getMinecraftVersion()));
 		}
-		increase(sel ? 50 : 34);
+		increase(sel ? 25 : 20);
 	}
 
 	private void protocol(String ip, int port, boolean sel) {
@@ -211,12 +239,13 @@ public class SimpleFrame extends JFrame {
 			collect(query.getMotd(), query.getPlayers(), query.getMaxPlayers(),
 					null);
 		}
-		increase(sel ? 50 : 33);
+		increase(sel ? 25 : 20);
 	}
 
 	DataCollector<String> cMotd = new DataCollector<>();
 	DataCollector<Integer> cOnline = new DataCollector<>();
 	DataCollector<Integer> cMax = new DataCollector<>();
+	DataCollector<String> cVer = new DataCollector<>();
 
 	void collect(String motd, int online, int max, ValueMap map) {
 		cMotd.collect(motd);
@@ -232,6 +261,9 @@ public class SimpleFrame extends JFrame {
 			playerVec.addAll(map.get(QueryKeys.ONLINE_PLAYERS));
 			playerList.updateUI();
 		}
+		if (map.containsKey(QueryKeys.VERSION)) {
+			cVer.collect(map.get(QueryKeys.VERSION));
+		}
 	}
 
 	private void socket(String ip, int port, boolean sel) {
@@ -243,7 +275,7 @@ public class SimpleFrame extends JFrame {
 			collect(query.getMotd(), query.getPlayers(), query.getMaxPlayers(),
 					null);
 		}
-		increase(33);
+		increase(20);
 	}
 
 	void increase(int i) {
@@ -263,6 +295,7 @@ public class SimpleFrame extends JFrame {
 
 	void view() {
 		players.setText("플레이어: " + cOnline.max() + " / " + cMax.max());
+		version.setText(cVer.max());
 		setMotd(cMotd.max());
 	}
 
@@ -275,7 +308,7 @@ public class SimpleFrame extends JFrame {
 		int index = -1;
 		motd.setText("");
 		if (s == null) {
-			motd.setText("Motd 분석이 불가능합니다.");
+			motd.appendText(sas, bis, lastColor, "Motd 분석이 불가능합니다.");
 			return;
 		}
 		while ((index = s.indexOf("§", index + 1)) != -1) {
