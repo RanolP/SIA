@@ -14,7 +14,7 @@ public class DataCollector<T> {
 	}
 
 	public T max() {
-		if (collected.keySet().size() == 0)
+		if (collected.keySet().size() <= 0)
 			return null;
 		return collected.keySet().stream().max((s1, s2) -> {
 			if (collected.get(s1) > collected.get(s2))

@@ -1,6 +1,5 @@
 package me.ranol.serverisalive.gui;
 
-
 public class PlayerObject {
 	private String nickName, uuid;
 

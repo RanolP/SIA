@@ -1,6 +1,8 @@
 package me.ranol.serverisalive;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -39,6 +41,16 @@ import me.ranol.serverisalive.utils.ValueMap;
 
 public class SimpleFrame extends JFrame {
 	private static final long serialVersionUID = -3687728785137546391L;
+	public static Font MINECRAFTIA;
+	{
+		try {
+			MINECRAFTIA = Font.createFont(Font.PLAIN,
+					new File("fonts\\Minecraftia.ttf")).deriveFont(12.5f);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+	}
 	PictureBox icon = new PictureBox();
 	JTextArea srvIP = new JTextArea("localhost");
 	JTextArea srvPort = new JTextArea("25565");
@@ -50,7 +62,6 @@ public class SimpleFrame extends JFrame {
 	JList<PlayerObject> playerList = new JList<>(playerVec);
 	JLabel status = new JLabel("[◎]");
 	JCheckBox mcProtocol = new JCheckBox("기본 프로토콜만 사용");
-	JLabel bukkit = new JLabel("사용 버킷");
 	JLabel version = new JLabel("서버 버전");
 
 	private JPanel contentPane;
@@ -116,15 +127,17 @@ public class SimpleFrame extends JFrame {
 						.start();
 				new Thread(() -> socket(ip, port, mcProtocol.isSelected()))
 						.start();
+				search.setText("조회중...");
+				search.setEnabled(false);
 			} catch (NumberFormatException e) {
 				showMessageBox("포트에 숫자를 넣어주세요!", "포트 설정", MessageType.WARN);
 
 			}
 		});
 		status.setForeground(Color.GRAY);
+
 		motd.setBackground(Color.BLACK);
 		motd.setForeground(new Color(255, 255, 255));
-
 		motd.setText("분석되지 않음");
 		motd.setBounds(130, 44, 442, 50);
 		motd.setEditable(false);
@@ -141,23 +154,20 @@ public class SimpleFrame extends JFrame {
 		contentPane.add(playerList);
 		playerList.setBounds(202, 125, 370, 190);
 		playerList.setCellRenderer(new PlayerRenderer());
-
 		contentPane.add(playerList);
+
 		mcProtocol.setSelected(true);
 		mcProtocol.setBounds(12, 283, 141, 23);
-
 		contentPane.add(mcProtocol);
-		status.setBounds(130, 100, 36, 15);
 
+		status.setBounds(130, 100, 36, 15);
 		contentPane.add(status);
 
-		bukkit.setBounds(352, 100, 220, 15);
-		contentPane.add(bukkit);
-		version.setBounds(12, 145, 178, 15);
-
+		version.setBounds(354, 100, 218, 15);
 		contentPane.add(version);
 
 		setVisible(true);
+		motd.setFont(MINECRAFTIA);
 		SwingUtilities.invokeLater(() -> {
 			try {
 				UIManager.setLookAndFeel(new NimbusLookAndFeel());
@@ -178,6 +188,7 @@ public class SimpleFrame extends JFrame {
 
 	private void reset() {
 		set(0);
+		playerVec.clear();
 		icon.setImage(null);
 		cOnline.clear();
 		cMax.clear();
@@ -227,7 +238,8 @@ public class SimpleFrame extends JFrame {
 									query.getOnlineUsers())
 							.set(QueryKeys.PROTOCOL_VERSION,
 									query.getProtocolVersion())
-							.set(QueryKeys.VERSION, query.getMinecraftVersion()));
+							.set(QueryKeys.VERSION, query.getMinecraftVersion())
+							.set("1.7", null));
 		}
 		increase(sel ? 25 : 20);
 	}
@@ -256,8 +268,13 @@ public class SimpleFrame extends JFrame {
 		if (map.containsKey(QueryKeys.SERVER_ICON)) {
 			icon.setImage(map.get(QueryKeys.SERVER_ICON));
 		}
+		if (map.containsKey("1.7")) {
+			cMotd.collect(motd);
+			cMotd.collect(motd);
+			cMotd.collect(motd);
+			cMotd.collect(motd);
+		}
 		if (map.containsKey(QueryKeys.ONLINE_PLAYERS)) {
-			playerVec.clear();
 			playerVec.addAll(map.get(QueryKeys.ONLINE_PLAYERS));
 			playerList.updateUI();
 		}
@@ -294,12 +311,15 @@ public class SimpleFrame extends JFrame {
 	}
 
 	void view() {
+		search.setText("정보 조회");
+		search.setEnabled(true);
 		players.setText("플레이어: " + cOnline.max() + " / " + cMax.max());
 		version.setText(cVer.max());
 		setMotd(cMotd.max());
 	}
 
 	void setMotd(String s) {
+		System.out.println(s);
 		SimpleAttributeSet sas = new SimpleAttributeSet();
 		boolean[] bis = new boolean[3];
 		Arrays.fill(bis, false);
@@ -308,7 +328,8 @@ public class SimpleFrame extends JFrame {
 		int index = -1;
 		motd.setText("");
 		if (s == null) {
-			motd.appendText(sas, bis, lastColor, "Motd 분석이 불가능합니다.");
+			motd.appendText(sas, bis, lastColor,
+					"서버가 오프라인이거나 Motd를 구할 수 없습니다.", MINECRAFTIA);
 			return;
 		}
 		while ((index = s.indexOf("§", index + 1)) != -1) {
@@ -327,7 +348,7 @@ public class SimpleFrame extends JFrame {
 				continue;
 			String text = s.substring(last, index).replaceAll(
 					"§[0-9a-flom]{1}", "");
-			motd.appendText(sas, bis, lastColor, text);
+			motd.appendText(sas, bis, lastColor, text, MINECRAFTIA);
 			last = index;
 		}
 		String code = s.substring(last + 1, last + 2);
@@ -343,7 +364,7 @@ public class SimpleFrame extends JFrame {
 		}
 		String text = s.substring(last, s.length()).replaceAll(
 				"§[0-9a-flom]{1}", "");
-		motd.appendText(sas, bis, lastColor, text);
+		motd.appendText(sas, bis, lastColor, text, MINECRAFTIA);
 	}
 
 	void showMessageBox(String msg, String title, MessageType type) {
