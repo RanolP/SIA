@@ -90,4 +90,9 @@ public class SocketQuery extends Query {
 		keySet().forEach(consumer);
 	}
 
+	@Override
+	public String toString() {
+		return super.toString();
+	}
+
 }

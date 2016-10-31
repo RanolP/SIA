@@ -25,15 +25,7 @@ public class UDPUtils {
 
 	public static void sendPacket(DatagramSocket soc,
 			InetSocketAddress address, int... data) throws IOException {
-		byte[] d = new byte[data.length];
-		for (int i = 0; i < data.length; i++) {
-			d[i] = convert(data[i]);
-		}
-		sendPacket(soc, address, d);
-	}
-
-	public static byte convert(int i) {
-		return (byte) (i & 0xff);
+		sendPacket(soc, address, ByteUtils.convert(data));
 	}
 
 	public static DatagramPacket recievePacket(DatagramSocket soc, byte[] buffer)

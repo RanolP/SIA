@@ -22,9 +22,11 @@ import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import javax.swing.text.SimpleAttributeSet;
 
 import me.ranol.serverisalive.checker.CheckResults;
-import me.ranol.serverisalive.checker.PingQuery;
+import me.ranol.serverisalive.checker.PingQuery_1_5;
+import me.ranol.serverisalive.checker.PingQuery_1_7;
 import me.ranol.serverisalive.checker.ProtocolQuery;
 import me.ranol.serverisalive.checker.Query;
+import me.ranol.serverisalive.checker.QueryKeys;
 import me.ranol.serverisalive.checker.SocketQuery;
 import me.ranol.serverisalive.gui.ColoredPane;
 import me.ranol.serverisalive.gui.PictureBox;
@@ -45,8 +47,10 @@ public class SimpleFrame extends JFrame {
 	JLabel players = new JLabel("플레이어: N / N");
 	Vector<PlayerObject> playerVec = new Vector<>();
 	JList<PlayerObject> playerList = new JList<>(playerVec);
-	JLabel status = new JLabel("None");
+	JLabel status = new JLabel("[◎]");
 	JCheckBox mcProtocol = new JCheckBox("기본 프로토콜만 사용");
+	JLabel bukkit = new JLabel("사용 버킷");
+	JLabel version = new JLabel("서버 버전");
 
 	private JPanel contentPane;
 	private final ColoredPane motd = new ColoredPane();
@@ -92,15 +96,12 @@ public class SimpleFrame extends JFrame {
 				int port = Integer.parseInt(srvPort.getText());
 				String ip = srvIP.getText();
 				new Thread(() -> {
-					System.out.println("Alive Check");
 					if (Query.isAlive(ip, port, 1500)) {
-						status.setText("Server Online");
-						status.setForeground(Color.GREEN);
-						System.out.println("On");
+						status.setText("[✓] On");
+						status.setForeground(Colors.DARK_GREEN.getAWTColor());
 					} else {
-						status.setText("Server Offline");
-						status.setForeground(Color.RED);
-						System.out.println("Off");
+						status.setText("[✗] Off");
+						status.setForeground(Colors.RED.getAWTColor());
 					}
 				}).start();
 				new Thread(() -> ping(ip, port, mcProtocol.isSelected()))
@@ -114,11 +115,7 @@ public class SimpleFrame extends JFrame {
 
 			}
 		});
-
-		JLabel lblMotd = new JLabel("Motd:");
 		status.setForeground(Color.GRAY);
-		lblMotd.setBounds(92, 44, 45, 15);
-		contentPane.add(lblMotd);
 		motd.setBackground(Color.BLACK);
 		motd.setForeground(new Color(255, 255, 255));
 
@@ -129,14 +126,14 @@ public class SimpleFrame extends JFrame {
 		motd.setBorder(new LineBorder(Color.GRAY, 1));
 		contentPane.add(motd);
 
-		players.setBounds(270, 100, 187, 15);
+		players.setBounds(167, 100, 187, 15);
 		contentPane.add(players);
 
-		icon.setBounds(12, 65, 100, 100);
+		icon.setBounds(10, 40, 100, 100);
 		contentPane.add(icon);
 
 		contentPane.add(playerList);
-		playerList.setBounds(270, 125, 302, 190);
+		playerList.setBounds(202, 125, 370, 190);
 		playerList.setCellRenderer(new PlayerRenderer());
 
 		contentPane.add(playerList);
@@ -144,9 +141,15 @@ public class SimpleFrame extends JFrame {
 		mcProtocol.setBounds(12, 283, 141, 23);
 
 		contentPane.add(mcProtocol);
-		status.setBounds(130, 100, 128, 15);
+		status.setBounds(130, 100, 36, 15);
 
 		contentPane.add(status);
+
+		bukkit.setBounds(352, 100, 220, 15);
+		contentPane.add(bukkit);
+		version.setBounds(130, 125, 57, 15);
+
+		contentPane.add(version);
 
 		setVisible(true);
 		SwingUtilities.invokeLater(() -> {
@@ -175,17 +178,28 @@ public class SimpleFrame extends JFrame {
 	}
 
 	private void ping(String ip, int port, boolean sel) {
-		PingQuery query = new PingQuery(ip, port);
-		CheckResults result = query.connect();
 		icon.setImage(null);
+		PingQuery_1_5 query2 = new PingQuery_1_5(ip, port);
+		CheckResults result = query2.connect();
 		if (result == CheckResults.CONNECTED) {
-			setMotd(query.getMotd());
+			collect(query2.getMotd(),
+					query2.getPlayers(),
+					query2.getMaxPlayers(),
+					new ValueMap().set(QueryKeys.PROTOCOL_VERSION,
+							query2.getProtocolVersion()));
+		}
+		PingQuery_1_7 query = new PingQuery_1_7(ip, port);
+		result = query.connect();
+		if (result == CheckResults.CONNECTED) {
 			collect(query.getMotd(),
 					query.getPlayers(),
 					query.getMaxPlayers(),
-					new ValueMap().set(PingQuery.SERVER_ICON,
-							query.getServerIcon()).set(PingQuery.USER_NICKNAME,
-							query.getOnlineUsers()));
+					new ValueMap()
+							.set(QueryKeys.SERVER_ICON, query.getServerIcon())
+							.set(QueryKeys.ONLINE_PLAYERS,
+									query.getOnlineUsers())
+							.set(QueryKeys.PROTOCOL_VERSION,
+									query.getProtocolVersion()));
 		}
 		increase(sel ? 50 : 34);
 	}
@@ -210,12 +224,12 @@ public class SimpleFrame extends JFrame {
 		cMax.collect(max);
 		if (map == null)
 			return;
-		if (map.containsKey(PingQuery.SERVER_ICON)) {
-			icon.setImage(map.get(PingQuery.SERVER_ICON));
+		if (map.containsKey(QueryKeys.SERVER_ICON)) {
+			icon.setImage(map.get(QueryKeys.SERVER_ICON));
 		}
-		if (map.containsKey(PingQuery.USER_NICKNAME)) {
+		if (map.containsKey(QueryKeys.ONLINE_PLAYERS)) {
 			playerVec.clear();
-			playerVec.addAll(map.get(PingQuery.USER_NICKNAME));
+			playerVec.addAll(map.get(QueryKeys.ONLINE_PLAYERS));
 			playerList.updateUI();
 		}
 	}

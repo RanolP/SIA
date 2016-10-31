@@ -50,4 +50,15 @@ public class ByteUtils {
 		return append(append(cut(real, 0, index), data),
 				cut(real, index, real.length));
 	}
+
+	public static byte convert(int i) {
+		return (byte) (i & 0xff);
+	}
+
+	public static byte[] convert(int... i) {
+		byte[] data = new byte[i.length];
+		for (int j = 0; j < i.length; data[j] = convert(i[j++]))
+			;
+		return data;
+	}
 }

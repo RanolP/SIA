@@ -6,12 +6,7 @@ import java.util.Set;
 
 import me.ranol.serverisalive.utils.ValueMap;
 
-public abstract class Query {
-	public static final String IP = "ip";
-	public static final String PORT = "port";
-	public static final String MOTD = "motd";
-	public static final String MAX_PLAYERS = "max-players";
-	public static final String PLAYERS = "players";
+public abstract class Query extends QueryKeys{
 	private ValueMap values = ValueMap.empty();
 
 	public Query(String ip, int port) {
@@ -19,8 +14,8 @@ public abstract class Query {
 		set(PORT, port);
 		set("check-start", System.currentTimeMillis());
 		setConnected(false);
-		set(MAX_PLAYERS, Integer.MIN_VALUE);
-		set(PLAYERS, Integer.MIN_VALUE);
+		set(MAX_PLAYERS, 0);
+		set(PLAYERS, 0);
 		set(MOTD, "Not connected");
 	}
 
@@ -79,5 +74,13 @@ public abstract class Query {
 
 	public <T> void set(String key, T value) {
 		values.set(key, value);
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " ip=" + getIPAddress() + ", port="
+				+ getPort() + ", connected=" + isConnected() + ", motd="
+				+ getMotd() + ", players=" + getPlayers() + "/"
+				+ getMaxPlayers();
 	}
 }

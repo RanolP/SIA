@@ -14,19 +14,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import me.ranol.serverisalive.gui.PlayerObject;
 import me.ranol.serverisalive.utils.ByteUtils;
 import me.ranol.serverisalive.utils.UDPUtils;
 
 public class ProtocolQuery extends Query {
-	public static final String VERSION = "mcversion";
-	public static final String GAME_TYPE = "gametype";
-	public static final String GAME_ID = "gameid";
-	public static final String SERVER_PORT = "mcport";
-	public static final String SERVER_IP = "mcip";
-	public static final String MAP_NAME = "map";
-	public static final String PLUGINS = "plugins";
-	public static final String BUKKIT_NAME = "bukkit";
-	public static final String CURRENT_PLAYERS = "currplayer";
 
 	public ProtocolQuery(String ip, int queryport) {
 		super(ip, queryport);
@@ -36,12 +28,12 @@ public class ProtocolQuery extends Query {
 		return get(GAME_ID);
 	}
 
-	public String getGameType() {
-		return get(GAME_TYPE);
+	public String getGameVersion() {
+		return get(VERSION);
 	}
 
-	public String getMinecraftVersion() {
-		return get(VERSION);
+	public String getGameType() {
+		return get(GAME_TYPE);
 	}
 
 	public int getServerPort() {
@@ -103,7 +95,7 @@ public class ProtocolQuery extends Query {
 				}
 			}
 			last = 0;
-			List<String> users = new ArrayList<>();
+			List<PlayerObject> users = new ArrayList<>();
 			while ((index = ByteUtils.indexOf(recieve,
 					new byte[] { 0x00, 0x00 }, index + 1)) != -1) {
 				if (last == 0) {
@@ -115,7 +107,7 @@ public class ProtocolQuery extends Query {
 					break;
 				temp = ByteUtils.cut(temp, 1, temp.length);
 				last = index;
-				users.add(new String(temp));
+				users.add(new PlayerObject(new String(temp), ""));
 
 			}
 			set(MOTD, values.get("hostname"));
@@ -132,7 +124,7 @@ public class ProtocolQuery extends Query {
 					"plugins").split(":")[1].split(";"))).stream()
 					.map(s -> s.trim()).collect(Collectors.toList());
 			set(PLUGINS, plugins);
-			set(CURRENT_PLAYERS, users);
+			set(ONLINE_PLAYERS, users);
 			setConnected(true);
 			return CheckResults.CONNECTED;
 
@@ -152,5 +144,14 @@ public class ProtocolQuery extends Query {
 			e.printStackTrace();
 		}
 		return CheckResults.OTHER;
+	}
+
+	@Override
+	public String toString() {
+		return super.toString() + ", version=" + getGameVersion() + ", gameid="
+				+ getGameId() + ", gametype=" + getGameType() + ", gameport="
+				+ getServerPort() + ", gameip=" + getServerIP() + ", map="
+				+ getMapName() + ", plugins=" + getPlugins() + ", bukkit="
+				+ getBukkitName();
 	}
 }
