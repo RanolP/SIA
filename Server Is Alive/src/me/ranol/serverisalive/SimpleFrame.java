@@ -284,7 +284,7 @@ public class SimpleFrame extends JFrame {
 	}
 
 	private void socket(String ip, int port, boolean sel) {
-		if (sel)
+		if (sel) 
 			return;
 		Query query = new SocketQuery(ip, port);
 		CheckResults result = query.connect();
