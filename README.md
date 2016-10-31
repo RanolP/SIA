@@ -10,6 +10,8 @@ Minecraft Ping Type Connecting [_Minecraft's Ping Protocol_]:<br>
   - 1.7 upper
 
 Socket Alive Checking
+# Requirements
+Gson - PingQuery_1_7
 
 # How to use API?
 Use with JAVA API
